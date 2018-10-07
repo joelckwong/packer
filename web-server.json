@@ -1,0 +1,29 @@
+{
+  "builders": [{
+    "ami_name": "packer-web-server-{{timestamp}}",
+    "instance_type": "t3.micro",
+    "region": "us-east-1",
+    "type": "amazon-ebs",
+    "source_ami_filter": {
+      "filters": {
+         "virtualization-type": "hvm",
+         "name": "amzn-ami*-ebs",
+         "root-device-type": "ebs"
+         },
+         "owners": ["137112412989", "591542846629", "801119661308",
+                    "102837901569", "013907871322", "206029621532", 
+                    "286198878708", "443319210888"],
+         "most_recent": true
+    },
+    "ssh_username": "ec2-user"
+  }],
+  "provisioners": [{
+    "type": "shell",
+    "inline": [
+      "sudo yum -y update",
+      "sudo yum -y install httpd",
+      "sudo service httpd start",
+      "sudo chkconfig httpd on"
+    ]
+  }]
+}
