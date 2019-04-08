@@ -1,0 +1,64 @@
+{
+  "variables": {
+    "app_name": "httpd",
+    "env": "demo",
+    "instance_type": "t3.small"
+  },
+  "builders": [
+    {
+      "ami_description": "PACKER-DEMO-{{user `app_name` }}",
+      "ami_name": "PACKER-DEMO-{{user `app_name` }}",
+      "instance_type": "{{user `instance_type`}}",
+      "launch_block_device_mappings": [
+        {
+          "delete_on_termination": true,
+          "device_name": "/dev/sda1",
+          "volume_size": 64,
+          "volume_type": "gp2"
+        },
+        {
+          "delete_on_termination": true,
+          "device_name": "/dev/sdb",
+          "volume_size": 64,
+          "volume_type": "gp2"
+        }
+      ],
+      "region": "us-east-1",
+      "tags": {
+        "Env": "{{user `env`}}",
+        "Name": "packer-{{user `app_name`}}"
+      },
+      "source_ami_filter": {
+        "filters": {
+          "architecture": "x86_64",
+          "name": "CentOS Linux 7 x86_64 HVM EBS*",
+          "owner-id": "679593333241",
+          "root-device-type": "ebs",
+          "virtualization-type": "hvm"
+        },
+        "owners": ["679593333241"],
+        "most_recent": true
+      },
+      "ssh_username": "centos",
+      "type": "amazon-ebs"
+    }
+  ],
+  "provisioners": [
+    {
+      "inline": [
+        "sudo fdisk -l",
+        "echo -e 'o\nn\np\n1\n\n\nw' | sudo fdisk /dev/nvme1n1",
+        "sleep 2",
+        "sudo mkfs.xfs /dev/nvme1n1p1",
+        "echo '/dev/nvme1n1p1 /opt xfs defaults 1 2' | sudo tee -a /etc/fstab",
+        "sudo mount /opt",
+        "sudo restorecon -R -v /opt"
+      ],
+      "type": "shell"
+    },
+    {
+      "script": "demo-script.sh",
+      "type": "shell"
+    }
+  ]
+}
